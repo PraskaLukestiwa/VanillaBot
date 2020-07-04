@@ -46,6 +46,8 @@ A: Market confirmation didn't works for some reason, I'm not sure why.
 
 ## Add / change bot feature (developer only)
 
+First of all, you need to know Java or JavaScript to change the code
+
 Please visit relevant module wiki to add / change feature
 
 - General: [steam-user](https://github.com/DoctorMcKay/node-steam-user/blob/master/README.md#contents)

@@ -1,0 +1,10 @@
+{
+    "username" : "username",
+    "password" : "password",
+	"admin" : "steamID64 number",
+	"my64id" : "steamID64 number",
+	"tfa"  : "sharedsecret code",
+	"trade"	: "identitysecret code",
+	"apikey" : "apikey",
+	"rememberPassword" : true
+}

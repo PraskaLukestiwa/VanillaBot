@@ -1,5 +1,5 @@
 # VanillaBot
-NodeJS code for 1:1 same set Trading Cards, Background, and Emoticon Steam Trading Bot
+NodeJS Steam bot for 1:1 same set Trading Cards, Background, and Emoticon Trade
 
 https://steamcommunity.com/id/VanillaBot/
 

@@ -37,6 +37,9 @@ Run bot using `node bot.js`
 Q: How to change online status?
 A: Change setPersona number on [line 200](https://github.com/Vanilla72/VanillaBot/blob/master/bot.js#L200)
 
+Q: Market Confirmation?
+A: Market confirmation didn't works for some reason, I'm not sure why.
+
 *will added more if needed*
 
 ## Add / change bot feature (developer only)

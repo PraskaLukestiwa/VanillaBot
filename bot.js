@@ -608,7 +608,7 @@ manager.on('newOffer', function(offer) {
 	for(i = 0; i < givenlength;i++){
 		for(j = 0; j < receivelength;j++){
 			if (itemBotGive[i] == itemBotReceive[j]){
-				if (itemBotGive[i] == "NEKOPARA Vol. 0 Profile Background" || itemBotGive[i] == "Shan Gui Emoticon"){
+				if (itemBotGive[i] == "MyBackground"){
 					removedcards++;
 					blacklistedcount++;
 					itemBotReceive.splice(j, 1);

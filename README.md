@@ -48,7 +48,7 @@ A: It's because the relevant code got removed and it's quite buggy.
 
 So far VanillaBot use `if (item.marketable == false){ //do something about non marketable card }`, but Steam sometimes send wrong information about it, which makes bot think it's marketable card / cross-trade. I tried checking the "Marketable" tags or checking *This item can no longer be bought or sold on the Community Market* text, and it still doesn't works because Steam sending wrong information.
 
-Workaround exist by checking is Market price exist or not *each card*, which takes a lot of time and have chance bot got rate-limited by Steam (also *might* break Steam Term of Service because Market bot is not allowed)
+Workaround exist by checking Market price *each card*, which takes a lot of time and have chance bot got rate-limited by Steam (also *might* break Steam Term of Service because Market bot is not allowed)
 
 *will added more if needed*
 

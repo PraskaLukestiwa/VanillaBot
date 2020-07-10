@@ -412,9 +412,6 @@ client.on("friendMessage", function(senderID, message) {
 		client.chatMessage(senderID, "ReLoggin");
 		client.webLogOn();
 	}
-	else if ((senderID == admin) && (text == "!2faok Van")){
-		client.chatMessage(senderID, "Lol, wrong bot");
-	}
 	else if ((senderID == admin) && (text.substring(0,6) == "rename")){
 		var newname = text.substring(7,text.length);
 		client.setPersona(1, newname);
@@ -425,36 +422,6 @@ client.on("friendMessage", function(senderID, message) {
 	}
 	else if ((senderID == admin) && (text == "apikey")){
 		client.chatMessage(senderID, config.apikey);
-	}
-	else if ((senderID == admin) && (isNaN(text.substring(0,17)) == false )){
-		client.chatMessage(senderID, "http://steamcommunity.com/profiles/"+text.substring(0,17));
-	}
-	else if ((senderID == admin) && (text.includes("http://steamcommunity.com/id/") == true)){
-		var http = require("http");
-		var customurl = text.substring(29,text.length-1);
-		var webapi = "http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key="+config.apikey+"&vanityurl="+customurl;
-		var request = http.get(webapi, function (response) {
-		var buffer = "", 
-			data,
-			description;
-			response.on("data", function (chunk) {
-				buffer += chunk;
-				
-				response.on("end", function (err) {
-					data = JSON.parse(buffer);
-					success = data.response.success;
-					
-					if (success == 1){
-						usersteamid = data.response.steamid;
-						client.chatMessage(senderID, usersteamid);
-					}
-					else {
-						usersteamid = "I can't find it";
-						client.chatMessage(senderID, usersteamid);
-					}
-				});
-			});
-		}); 
 	}
 	else if ((senderID == admin) && (text.includes("addcomment") == true)){
 		steam.postUserComment(config.my64id, text.substring(11,text.length));
@@ -500,28 +467,6 @@ client.on("friendMessage", function(senderID, message) {
 	}
 	else if (spammerSteamID == senderID.getSteamID64()){
 		//people who trying to spam will not receive any message from us
-	}
-	else if (text.match(/.....-.....-...../) && text.length == 17){
-		
-		client.chatMessage(senderID, "Hello, I can't take steam-key anymore. My owner told me to disable steam-key donation");
-		setTimeout(function(){
-			client.chatMessage(senderID, "Please write 'sendtoOwner' + your messages to send message to my owner for more info");
-		}, 2000);
-	}
-	else if (text.match(/.....-.....-...../)){
-		
-		client.chatMessage(senderID, "Hello, I can't take steam-key anymore. My owner told me to disable steam-key donation");
-		setTimeout(function(){
-			client.chatMessage(senderID, "Please write 'sendtoOwner' + your messages to send message to my owner for more info");
-		}, 2000);
-		
-		/*
-		client.chatMessage(senderID, "Hmm? If you want to donate Steam Key, just send me chat with your Steam key, like: ABCDE-FGHIJ-12345");
-		*/
-	}
-	else if (text.match(/sendtoOwner.*/i)) {
-		client.chatMessage(admin, senderID + " replied: " + text.substring(13,text.length));
-		client.chatMessage(senderID, "Done sending your messages");
 	}
 	else if (text == "ping"){
 		client.chatMessage(senderID, "pong");

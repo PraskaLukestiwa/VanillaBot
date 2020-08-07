@@ -36,7 +36,7 @@ Run bot using `node bot.js`
 
 > How to change Online status?
 
-A: Change setPersona number on [line 200](https://github.com/Vanilla72/VanillaBot/blob/master/bot.js#L200)
+A: Change setPersona number on [line 201](https://github.com/Vanilla72/VanillaBot/blob/master/bot.js#L201)
 
 > Market Confirmation?
 
@@ -52,7 +52,7 @@ Workaround exist by checking Market price *each card*, which takes a lot of time
 
 *will added more if needed*
 
-## Add / change bot feature (developer only)
+## Add / Change Bot Feature
 
 First of all, you need to know Java or JavaScript to change the code
 

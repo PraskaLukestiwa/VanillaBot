@@ -61,6 +61,14 @@ const blacklistedMyItemsTypes = [
 	"Shan Gui Emoticon",
 ];
 
+function genItemObj(assetid, appid, contextid){
+	return {
+		appid:     appid || 753,
+		contextid: contextid || 6,
+		assetid:   assetid
+	};
+}
+
 var unblockedSteamID;
 var removefriendSteamID;
 var blockSteamID;
@@ -677,19 +685,19 @@ manager.on('newOffer', function(offer) {
 			var counteroffer = offer.counter();
 			offer.itemsToGive.forEach(function(item) {
 				if(blacklistedMyItemsTypes.includes(item.type)){
-					counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+					counteroffer.removeMyItem(genItemObj(item.assetid, item.appid, item.contextid));
 				}
 			});
 			offer.itemsToReceive.forEach(function(item) {
 				if(blacklistedMyItemsTypes.includes(item.type)){
-					counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+					counteroffer.removeTheirItem(genItemObj(item.assetid, item.appid, item.contextid));
 				}
 			});
-			myassetid.forEach(function(item) {
-				counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
+			myassetid.forEach(function(assetid) {
+				counteroffer.removeMyItem(genItemObj(assetid));
 			});
-			theirassetid.forEach(function(item) {
-				counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
+			theirassetid.forEach(function(assetid) {
+				counteroffer.removeTheirItem(genItemObj(assetid));
 			});
 
 			counteroffer.setMessage("Sorry, I'm not gonna trade my Shan Gui emoticon / my current Profile Background");
@@ -740,20 +748,20 @@ manager.on('newOffer', function(offer) {
 
 		offer.itemsToGive.forEach(function(item) {
 			if(blacklistedMyItemsTypes.includes(item.type)){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+				counteroffer.removeMyItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
 			if(blacklistedMyItemsTypes.includes(item.type)){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+				counteroffer.removeTheirItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
 
-		myassetid.forEach(function(item) {
-			counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
+		myassetid.forEach(function(assetid) {
+			counteroffer.removeMyItem(genItemObj(assetid));
 		});
-		theirassetid.forEach(function(item) {
-			counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
+		theirassetid.forEach(function(assetid) {
+			counteroffer.removeTheirItem(genItemObj(assetid));
 		});
 
 		if (counterofferSteamID == offer.partner.getSteamID64()){
@@ -788,20 +796,20 @@ manager.on('newOffer', function(offer) {
 
 		offer.itemsToGive.forEach(function(item) {
 			if(blacklistedMyItemsTypes.includes(item.type)){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+				counteroffer.removeMyItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
 			if(blacklistedMyItemsTypes.includes(item.type)){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+				counteroffer.removeTheirItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
 
-		myassetid.forEach(function(item) {
-			counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
+		myassetid.forEach(function(assetid) {
+			counteroffer.removeMyItem(genItemObj(assetid));
 		});
-		theirassetid.forEach(function(item) {
-			counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
+		theirassetid.forEach(function(assetid) {
+			counteroffer.removeTheirItem(genItemObj(assetid));
 		});
 
 		counteroffer.setMessage("Hello, VanillaBot here... You put too many item in your trade offer.");
@@ -827,20 +835,20 @@ manager.on('newOffer', function(offer) {
 
 		offer.itemsToGive.forEach(function(item) {
 			if(blacklistedMyItemsTypes.includes(item.type)){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+				counteroffer.removeMyItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
 			if(blacklistedMyItemsTypes.includes(item.type)){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+				counteroffer.removeTheirItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
 
-		myassetid.forEach(function(item) {
-			counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
+		myassetid.forEach(function(assetid) {
+			counteroffer.removeMyItem(genItemObj(assetid));
 		});
-		theirassetid.forEach(function(item) {
-			counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
+		theirassetid.forEach(function(assetid) {
+			counteroffer.removeTheirItem(genItemObj(assetid));
 		});
 
 		counteroffer.setMessage("Hello, VanillaBot here... No cross-set please.");

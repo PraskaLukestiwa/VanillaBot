@@ -55,7 +55,11 @@ function saveLoginKey(key){
 	var jsonformat = '{ "loginkey" : "' +key+ '" }';
 	fs.appendFile(LoginkeyFileName, jsonformat,  {flag: 'w'}, function(err) {});
 }
-
+// TODO replace by actual items names/ids
+const blacklistedMyItemsTypes = [
+	"NEKOPARA Vol. 0 Profile Background",
+	"Shan Gui Emoticon",
+];
 
 var unblockedSteamID;
 var removefriendSteamID;
@@ -671,18 +675,12 @@ manager.on('newOffer', function(offer) {
 
 			var counteroffer = offer.counter();
 			offer.itemsToGive.forEach(function(item) {
-				if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-					counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-				}
-				if (item.type == "Shan Gui Emoticon"){
+				if(blacklistedMyItemsTypes.includes(item.type)){
 					counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 				}
 			});
 			offer.itemsToReceive.forEach(function(item) {
-				if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-					counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-				}
-				if (item.type == "Shan Gui Emoticon"){
+				if(blacklistedMyItemsTypes.includes(item.type)){
 					counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 				}
 			});
@@ -740,18 +738,12 @@ manager.on('newOffer', function(offer) {
 		var counteroffer = offer.counter();
 
 		offer.itemsToGive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if(blacklistedMyItemsTypes.includes(item.type)){
 				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if(blacklistedMyItemsTypes.includes(item.type)){
 				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
@@ -794,18 +786,12 @@ manager.on('newOffer', function(offer) {
 		var counteroffer = offer.counter();
 
 		offer.itemsToGive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if(blacklistedMyItemsTypes.includes(item.type)){
 				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if(blacklistedMyItemsTypes.includes(item.type)){
 				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
@@ -839,18 +825,12 @@ manager.on('newOffer', function(offer) {
 		var counteroffer = offer.counter();
 
 		offer.itemsToGive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if(blacklistedMyItemsTypes.includes(item.type)){
 				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if(blacklistedMyItemsTypes.includes(item.type)){
 				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});

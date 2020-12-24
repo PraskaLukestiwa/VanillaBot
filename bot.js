@@ -383,7 +383,7 @@ client.on("friendMessage", function(senderID, message) {
 		client.chatMessage(senderID, "Done");
 	}
 	else if ((senderID == admin) && (text.includes("blocklist") == true)){
-		blocklistSteamID = (text.replace ( /[^\d]/g, '' ));
+		blocklistSteamID = (text.replace ( /\D/g, '' ));
 		var found = false;
 		var fileread = fs.readFileSync('blocklist.txt').toString().split("\n");
 
@@ -400,17 +400,17 @@ client.on("friendMessage", function(senderID, message) {
 		}
 	}
 	else if ((senderID == admin) && (text.includes("unblock") == true)){
-		unblockedSteamID = (text.replace ( /[^\d]/g, '' ));
+		unblockedSteamID = (text.replace ( /\D/g, '' ));
 		client.unblockUser(unblockedSteamID);
 		client.chatMessage(senderID, unblockedSteamID+ " Unblocked");
 	}
 	else if ((senderID == admin) && (text.includes("removefriend") == true)){
-		removefriendSteamID = (text.replace ( /[^\d]/g, '' ));
+		removefriendSteamID = (text.replace ( /\D/g, '' ));
 		client.removeFriend(removefriendSteamID);
 		client.chatMessage(senderID, removefriendSteamID+ " Removed");
 	}
 	else if ((senderID == admin) && (text.includes("blockuser") == true)){
-		blockSteamID = (text.replace ( /[^\d]/g, '' ));
+		blockSteamID = (text.replace ( /\D/g, '' ));
 		client.removeFriend(blockSteamID);
 		client.blockUser(blockSteamID);
 		client.chatMessage(senderID, blockSteamID+ " Blocked");
@@ -445,11 +445,11 @@ manager.on('newOffer', function(offer) {
 	offer.itemsToReceive.forEach(function(item) {
 
 		theirassetid.push(item.assetid);
-
+		// TODO optimize code duplcation
 		if((item.type.includes("Profile Background") == true) || (item.type.includes("Emoticon") == true)){
 			var temp = item.type;
-			temp = temp.replace(/Uncommon /g,'');
-			temp = temp.replace(/Rare /g,'');
+			temp = temp.replace('Uncommon ', '');
+			temp = temp.replace('Rare ', '');
 			itemBotReceive.push(temp);
 		}
 		else if (item.type.includes("Trading Card") == true) {
@@ -478,10 +478,11 @@ manager.on('newOffer', function(offer) {
 			itemBotGive.push("Non-Marketable Emoticon");
 			unmarketablecards = false;
 		}
-		else if((item.type.includes("Profile Background") == true) || (item.type.includes("Emoticon") == true)){
+		else
+		if((item.type.includes("Profile Background") == true) || (item.type.includes("Emoticon") == true)){
 			var temp = item.type;
-			var temp = temp.replace(/Uncommon /g,'');
-			var temp = temp.replace(/Rare /g,'');
+			temp = temp.replace('Uncommon ', '');
+			temp = temp.replace('Rare ', '');
 			itemBotGive.push(temp);
 		}
 		else if (item.type.includes("Trading Card") == true) {
@@ -613,13 +614,13 @@ manager.on('newOffer', function(offer) {
 								setTimeout(function(){
 									donatorName = user.name;
 									donatorName = decode(donatorName);
-									donatorName = donatorName.replace(/"/g, "");
+									donatorName = donatorName.replace('"', "");
 									donatorName = donatorName.split(" ");
 									var filteredName = [];
 
 									donatorName.forEach(function(item){
 										if (item.includes(".com") || item.includes("csgo") || item.includes(".gg") || item.includes(".RU") || item.includes("CSGO")){
-
+											// TODO why is it empty?
 										}
 										else {
 											filteredName.push(item);
@@ -630,7 +631,7 @@ manager.on('newOffer', function(offer) {
 									var notes = "Donation from " + filteredName + " ( http://steamcommunity.com/profiles/" +offer.partner.getSteamID64()+ " ) \n Received " +offer.itemsToReceive.length+ " new item. Thank you. :bite: \n \n [b]Item List:[/b]\n";
 									offer.itemsToReceive.forEach(function(item, index) {
 										if (index >= 10){
-
+											// TODO why is it empty?
 										}
 										else {
 												notes = notes + "- " +item.name+ " (" +item.type+ ")\n";
@@ -639,7 +640,7 @@ manager.on('newOffer', function(offer) {
 									if (offer.itemsToReceive.length >= 10){
 										notes = notes + "\n and more..";
 									}
-									steam.postUserComment(config.my64id, notes);										// Bot will post detailed donation
+									steam.postUserComment(config.my64id, notes); // Bot will post detailed donation
 									fs.appendFile("donation_backup.txt", notes,  {flag: 'w'}, function(err) {});
 									//client.addFriend(offer.partner.getSteamID64());
 

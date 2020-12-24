@@ -35,21 +35,27 @@ var manager = new TradeOfferManager({
 	"globalAssetCache": true
 });
 
+const LoginkeyFileName = 'loginkey.json';
 try {
-	JSON.parse(fs.readFileSync('loginkey.json'));
+	JSON.parse(fs.readFileSync(LoginkeyFileName));
 } catch (e) {
 	isJSON = false;
 }
 
 if (isJSON == true){
-	var login_key = require("./loginkey.json");
+	var login_key = require("./"+LoginkeyFileName);
 	validLoginKey = login_key.loginkey;
 }
 else {
-	var jsonformat = '{ "loginkey" : "" }';
-	fs.appendFile("loginkey.json", jsonformat,  {flag: 'w'}, function(err) {});
+	saveLoginKey('');
 	validLoginKey = "";
 }
+
+function saveLoginKey(key){
+	var jsonformat = '{ "loginkey" : "' +key+ '" }';
+	fs.appendFile(LoginkeyFileName, jsonformat,  {flag: 'w'}, function(err) {});
+}
+
 
 var unblockedSteamID;
 var removefriendSteamID;
@@ -169,8 +175,7 @@ client.on('webSession', function(sessionID, cookies) {
 });
 
 client.on('loginKey', function (key) {
-	var jsonformat = '{ "loginkey" : "' +key+ '" }';
-	fs.appendFile("loginkey.json", jsonformat,  {flag: 'w'}, function(err) {});
+	saveLoginKey(key);
 });
 
 client.on('friendRelationship', function(steamID, relationship) {

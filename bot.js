@@ -1,35 +1,31 @@
 /*
 
-$$\    $$\                    $$\ $$\ $$\                 $$$$$$$\             $$\     
-$$ |   $$ |                   \__|$$ |$$ |                $$  __$$\            $$ |    
-$$ |   $$ |$$$$$$\  $$$$$$$\  $$\ $$ |$$ | $$$$$$\        $$ |  $$ | $$$$$$\ $$$$$$\   
-\$$\  $$  |\____$$\ $$  __$$\ $$ |$$ |$$ | \____$$\       $$$$$$$\ |$$  __$$\\_$$  _|  
- \$$\$$  / $$$$$$$ |$$ |  $$ |$$ |$$ |$$ | $$$$$$$ |      $$  __$$\ $$ /  $$ | $$ |    
-  \$$$  / $$  __$$ |$$ |  $$ |$$ |$$ |$$ |$$  __$$ |      $$ |  $$ |$$ |  $$ | $$ |$$\ 
+$$\    $$\                    $$\ $$\ $$\                 $$$$$$$\             $$\
+$$ |   $$ |                   \__|$$ |$$ |                $$  __$$\            $$ |
+$$ |   $$ |$$$$$$\  $$$$$$$\  $$\ $$ |$$ | $$$$$$\        $$ |  $$ | $$$$$$\ $$$$$$\
+\$$\  $$  |\____$$\ $$  __$$\ $$ |$$ |$$ | \____$$\       $$$$$$$\ |$$  __$$\\_$$  _|
+ \$$\$$  / $$$$$$$ |$$ |  $$ |$$ |$$ |$$ | $$$$$$$ |      $$  __$$\ $$ /  $$ | $$ |
+  \$$$  / $$  __$$ |$$ |  $$ |$$ |$$ |$$ |$$  __$$ |      $$ |  $$ |$$ |  $$ | $$ |$$\
    \$  /  \$$$$$$$ |$$ |  $$ |$$ |$$ |$$ |\$$$$$$$ |      $$$$$$$  |\$$$$$$  | \$$$$  |
-    \_/    \_______|\__|  \__|\__|\__|\__| \_______|      \_______/  \______/   \____/ 
-	
+    \_/    \_______|\__|  \__|\__|\__|\__| \_______|      \_______/  \______/   \____/
+
 			https://github.com/PraskaLukestiwa/VanillaBot
 				Apache-2.0 License
-	
+
 */
 
 var isJSON = true;
 var validLoginKey = "";
 var config = require("./config.json");
-//var login_key = require("./loginkey.json");
 
 var SteamCommunity = require("steamcommunity");
 var fs = require('fs');
-var fs2 = require('fs');
 var steam = new SteamCommunity();
 var SteamTotp = require('steam-totp');
 var SteamUser = require('steam-user');
 var client = new SteamUser();
-var SteamID = SteamCommunity.SteamID;
 var admin = config.admin;
 var TradeOfferManager = require('steam-tradeoffer-manager');
-var identitysecret = config.trade;
 var decode = require('decode-html');
 var manager = new TradeOfferManager({
 	"steam": client,
@@ -40,8 +36,7 @@ var manager = new TradeOfferManager({
 });
 
 try {
-	var rawdata = fs.readFileSync('loginkey.json');  
-	var fileLoginKey = JSON.parse(rawdata);  
+	JSON.parse(fs.readFileSync('loginkey.json'));
 } catch (e) {
 	isJSON = false;
 }
@@ -56,36 +51,20 @@ else {
 	validLoginKey = "";
 }
 
-var antispam;
-var markedSteamID;
 var unblockedSteamID;
 var removefriendSteamID;
 var blockSteamID;
 var blocklistSteamID;
 var donatorName;
-var spammerSteamID;
 var counterofferSteamID;
 
-var cards;
-var date;
 var lastAdd = 0;
 
 var lastOfferID;
-var vanityname;
 
-//fs.appendFile("log.txt", "",  {flag: 'w'}, function(err) {});
-fs.appendFile("log.txt", "",  {flag: 'a'}, function(err) {});
 
-function matchDescription() { 
-    //return 'This item can no longer be bought or sold on the Community Market.';
-	return 'Community Market';
-}
-function rolldice() {
-	var x = Math.floor((Math.random() * 6) + 1);
-	return (x);
-}
 function currentdate(){
-	var date = new Date(); 
+	var date = new Date();
 	var dateformat = (("0" +date.getDate()).slice(-2) + "/"
 					+ (+date.getMonth()+1) + "/"
 					+ ("0" +date.getFullYear()).slice(-2) + " - "
@@ -98,45 +77,15 @@ function twofactor() {
 	var tfa = SteamTotp.generateAuthCode(config.tfa);
 	return (tfa);
 }
-function stmCommand(SteamID){
-	
-	var myType = [];
-	var myAssetId = [];
-	var myItemName = [];
-	
-	var theirType = [];
-	var theirAssetId = [];
-	var theirItemName = [];
-	
-	manager.getInventoryContents(753, 6, true, function(err, inventory, currencies){
-		if (err){
-			var log = (currentdate() + " - Unable to load my inventory - "+err);
-			console.log(log);
-			fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-			client.chatMessage(SteamID, err);
-			setTimeout(function(){
-				client.chatMessage(SteamID, "If this error keep happening, please contact my Owner or leave comment");
-			}, 1500);
-		}
-		else {
-			inventory.forEach(function(item) {
-				myType.push(item.type);
-				myAssetId.push(item.assetid);
-				myItemName.push(item.name);
-			});
-			console.log(myType);
-			console.log(myAssetId);
-			console.log(myItemName);
-		}
-	});
-};
+
+
 function acceptConfirmation() {
 	var time = Math.floor(Date.now() / 1000);
 	var conf_key = SteamTotp.getConfirmationKey(config.trade, time, 'conf');
 	var allowKey = SteamTotp.getConfirmationKey(config.trade, time, 'allow');
-	
+
 	setTimeout(function(){
-		
+
 		steam.getConfirmations(time, conf_key, function(err, confirmations){
 			if (err){
 				var log = (currentdate() + " - "+ err);
@@ -167,14 +116,11 @@ function acceptConfirmation() {
 		});
 	}, 1000);
 }
-function spamtimer() {
-	antispam = 0;
-	markedSteamID = 0;
-}
+
 
 setInterval(currentdate, 1000);
 setInterval(twofactor, 1000);
-setInterval(spamtimer, 2000);
+
 
 String.prototype.insert = function (index, string) {
   if (index > 0)
@@ -197,11 +143,10 @@ client.on('loggedOn', function (details) {
 	var log = (currentdate() + " - Sucesfully Logged in");
 	fs.appendFile("log.txt", log+ "\n",  {flag: 'a'}, function(err) {});
 	console.log(log);
-	vanityname = client.vanityURL;
 	client.setPersona(1); //"0": "Offline", "1": "Online", "2": "Busy", "3": "Away", "4": "Snooze", "5": "LookingToTrade", "6": "LookingToPlay"
 	client.setUIMode(1);  //"None": 0, "BigPicture": 1, "Mobile": 2, "Web": 3
-	
-	//client.gamesPlayed("Custom Steam Game titles"); //63 characters - http://www.lettercount.com/
+
+	//client.gamesPlayed("Custom Steam Game titles"); //63 characters
 	//client.gamesPlayed(1121910);
 });
 
@@ -217,7 +162,7 @@ client.on('webSession', function(sessionID, cookies) {
 	var log = (currentdate() + " - Got our cookies");
 	fs.appendFile("log.txt", log+ "\n",  {flag: 'a'}, function(err) {});
 	console.log(log);
-	
+
 	setTimeout(function(){
 		steam.resetItemNotifications();
 	}, 10000);
@@ -235,7 +180,7 @@ client.on('friendRelationship', function(steamID, relationship) {
 		console.log(log);
         client.addFriend(steamID);
 		lastAdd == steamID;
-		
+
 		/*
 		setTimeout(function(){
 			client.chatMessage(steamID, "Hello, thanks for the add");
@@ -251,7 +196,7 @@ client.on('friendRelationship', function(steamID, relationship) {
 		console.log(log);
 	}
 	else {
-		
+
 	}
 });
 
@@ -262,9 +207,9 @@ steam.on("sessionExpired", function(err) {
 			fs.appendFile("log.txt", log+ "\n",  {flag: 'a'}, function(err) {});
 			console.log(log);
 		}, 500);
-		
+
 		client.webLogOn();
-		
+
 		setTimeout(function(){
 			manager.getOffer(lastOfferID, function (err, offer){
 				if (err){
@@ -275,7 +220,7 @@ steam.on("sessionExpired", function(err) {
 				else {
 					offer.accept();
 					setTimeout(function(){
-						acceptConfirmation(); 
+						acceptConfirmation();
 					}, 3000);
 				}
 			});
@@ -293,33 +238,33 @@ setTimeout(function(){
 */
 
 client.on("friendMessage", function(senderID, message) {
-	
+
 	var text = message;
-	
+
 	// ---------- LOG INCOMING CHAT TO CONSOLE AND FILE CHATBOG_LOG.TXT ---------- //
 	var log = (currentdate() + " - Message from " + senderID+ " : " + message);
 	fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
 	console.log(log);
-	
+
 	// ---------- ADMIN COMMAND ----------
-	
+
 	if ((senderID == admin) && (text.includes("giveme") == true)){
-		
+
 		var offer = manager.createOffer(admin);
 		var countitem = 0;
 		var itemname = [];
 		text = text.split(" ");
-		
+
 		text.forEach(function(item){
 			if (item.includes("giveme")){
-				
+
 			}
 			else {
 				itemname.push(item);
 			}
 		});
 		itemname = itemname.join(" ");
-		
+
 		manager.getInventoryContents(753, 6, true, function(err, inventory, currencies){
 			client.chatMessage(senderID, "Loading Inventories");
 			if (err){
@@ -356,25 +301,25 @@ client.on("friendMessage", function(senderID, message) {
 				}
 			}
 		});
-		
+
 	}
 	else if ((senderID == admin) && (text.includes("takemy") == true)){
-		
+
 		var offer = manager.createOffer(admin);
 		var countitem = 0;
 		var itemname = [];
 		text = text.split(" ");
-		
+
 		text.forEach(function(item){
 			if (item.includes("takemy")){
-				
+
 			}
 			else {
 				itemname.push(item);
 			}
 		});
 		itemname = itemname.join(" ");
-		
+
 		manager.getUserInventoryContents(admin, 753, 6, true, function(err, inventory, currencies){
 			if (err){
 				var log = (currentdate() + " - Unable to send item - "+err);
@@ -407,7 +352,7 @@ client.on("friendMessage", function(senderID, message) {
 				}
 			}
 		});
-		
+
 	}
 	else if ((senderID == admin) && (text == "relog")){
 		client.chatMessage(senderID, "ReLoggin");
@@ -432,7 +377,7 @@ client.on("friendMessage", function(senderID, message) {
 		blocklistSteamID = (text.replace ( /[^\d]/g, '' ));
 		var found = false;
 		var fileread = fs.readFileSync('blocklist.txt').toString().split("\n");
-		
+
 		for(i in fileread) {
 			if (fileread[i].includes(blocklistSteamID)){
 				client.chatMessage(senderID, fileread[i]);
@@ -466,49 +411,36 @@ client.on("friendMessage", function(senderID, message) {
 	else if ((senderID == admin) && message == "2fa"){
 		client.chatMessage(senderID, twofactor());
 	}
-	else if (spammerSteamID == senderID.getSteamID64()){
-		//people who trying to spam will not receive any message from us
-	}
 	else if (text == "ping"){
 		client.chatMessage(senderID, "pong");
 	}
-	
-	
-	antispam = text;
-	markedSteamID = senderID.getSteamID64();
-	
+
 })
 
 
 
 manager.on('newOffer', function(offer) {
-	
-	var trademsg = offer.message;
-	
-	var copyOffer = offer;
+
 	var itemBotGive = [];
 	var itemBotReceive = [];
 	var myassetid = [];
 	var theirassetid = [];
-	
+
 	var givenlength = offer.itemsToGive.length;
 	var receivelength = offer.itemsToReceive.length;
 	var removedcards = 0;
-	var unmarketablecards = false;
 	var blacklisteditem = false;
 	var blacklistedcount = 0;
 	var instantreject = false;
-	
-	var skip = false;
-	
+
 	offer.itemsToReceive.forEach(function(item) {
-		
+
 		theirassetid.push(item.assetid);
-		
+
 		if((item.type.includes("Profile Background") == true) || (item.type.includes("Emoticon") == true)){
 			var temp = item.type;
-			var temp = temp.replace(/Uncommon /g,'');
-			var temp = temp.replace(/Rare /g,'');
+			temp = temp.replace(/Uncommon /g,'');
+			temp = temp.replace(/Rare /g,'');
 			itemBotReceive.push(temp);
 		}
 		else if (item.type.includes("Trading Card") == true) {
@@ -518,13 +450,13 @@ manager.on('newOffer', function(offer) {
 			instantreject = true;
 		}
 	});
-	
+
 	offer.itemsToGive.forEach(function(item) {
-		
+
 		myassetid.push(item.assetid);
 		var unmarketablecards = false;
-		
-		
+
+
 		if ((item.type.includes("Trading Card") == true) && (unmarketablecards == true)){
 			itemBotGive.push("Non-Marketable Trading Cards");
 			unmarketablecards = false;
@@ -550,7 +482,7 @@ manager.on('newOffer', function(offer) {
 			instantreject = true;
 		}
 	});
-		
+
 	for(i = 0; i < givenlength;i++){
 		for(j = 0; j < receivelength;j++){
 			if (itemBotGive[i] == itemBotReceive[j]){
@@ -571,10 +503,10 @@ manager.on('newOffer', function(offer) {
 			}
 		}
 	}
-	
+
 	//Trade logic start here
 	if (offer.partner.getSteamID64() == admin){
-		
+
 		if (offer.itemsToGive.length == 0){
 			var log = (currentdate() + " - Accepting Trade Offer #" +offer.id+ " from Owner: " +offer.partner.getSteamID64());
 			fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
@@ -599,11 +531,11 @@ manager.on('newOffer', function(offer) {
 				}
 			});
 			setTimeout(function(){
-				acceptConfirmation(); 
+				acceptConfirmation();
 			}, 3000);
 		}
 	}
-	
+
 	else if (instantreject == true){
 		var log = (currentdate() + " - Rejecting Trade Offer from " +offer.partner.getSteamID64()+ " - Reason: Other item present");
 		console.log(log);
@@ -621,9 +553,9 @@ manager.on('newOffer', function(offer) {
 		console.log(log);
 		offer.decline();
 	}
-	
+
 	else if (offer.itemsToGive.length == 0){ 														// Bot give 0 item     -- donation
-	
+
 		var isDonation = true;
 		offer.itemsToReceive.forEach(function(item) {
 			if (item.type.includes("Profile Background") == true || item.type.includes("Emoticon") == true || item.type.includes("Trading Card") == true || item.type.includes("Booster Pack") == true){
@@ -633,7 +565,7 @@ manager.on('newOffer', function(offer) {
 				isDonation = false;
 			}
 		});
-		
+
 		if (isDonation == true){
 			setTimeout(function(){
 				var id = offer.partner;
@@ -668,28 +600,28 @@ manager.on('newOffer', function(offer) {
 									}
 								});
 								client.chatMessage(admin, ""+offer.partner.getSteamID64()+" just send me donation. Receive "+offer.itemsToReceive.length+" new item(s)");								//Reminds me in case if it's fail
-								
-								setTimeout(function(){	
+
+								setTimeout(function(){
 									donatorName = user.name;
 									donatorName = decode(donatorName);
 									donatorName = donatorName.replace(/"/g, "");
 									donatorName = donatorName.split(" ");
 									var filteredName = [];
-									
+
 									donatorName.forEach(function(item){
 										if (item.includes(".com") || item.includes("csgo") || item.includes(".gg") || item.includes(".RU") || item.includes("CSGO")){
-											
+
 										}
 										else {
 											filteredName.push(item);
 										}
 									});
 									filteredName = filteredName.join(" ");
-									
+
 									var notes = "Donation from " + filteredName + " ( http://steamcommunity.com/profiles/" +offer.partner.getSteamID64()+ " ) \n Received " +offer.itemsToReceive.length+ " new item. Thank you. :bite: \n \n [b]Item List:[/b]\n";
 									offer.itemsToReceive.forEach(function(item, index) {
 										if (index >= 10){
-											
+
 										}
 										else {
 												notes = notes + "- " +item.name+ " (" +item.type+ ")\n";
@@ -701,7 +633,7 @@ manager.on('newOffer', function(offer) {
 									steam.postUserComment(config.my64id, notes);										// Bot will post detailed donation
 									fs.appendFile("donation_backup.txt", notes,  {flag: 'w'}, function(err) {});
 									//client.addFriend(offer.partner.getSteamID64());
-									
+
 								}, 2000);
 							}
 						});
@@ -717,9 +649,9 @@ manager.on('newOffer', function(offer) {
 			client.chatMessage(offer.partner.getSteamID64(), "Hello, I'm sorry but I have to reject your donation. I only accept Trading Cards, Emoticon, and Background donation :doubt: ");
 		}
 	}
-	
+
 	else if((givenlength == removedcards) && (receivelength == removedcards)){
-		
+
 		if (blacklisteditem == true && removedcards == blacklistedcount){
 			var log = (currentdate() + " - Rejecting Trade Offer from " +offer.partner.getSteamID64()+ " - Reason: Blacklisted Item");
 			console.log(log)
@@ -727,11 +659,11 @@ manager.on('newOffer', function(offer) {
 			offer.decline();
 		}
 		else if (blacklisteditem == true){
-			
+
 			var log = (currentdate() + " - Countered ("+removedcards+ ":"+removedcards+") Trade Offer #" +offer.id+ " : " +offer.partner.getSteamID64()+ " - eason: Blacklisted Item");
 			console.log(log);
 			fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-			
+
 			var counteroffer = offer.counter();
 			offer.itemsToGive.forEach(function(item) {
 				if (item.type == "NEKOPARA Vol. 0 Profile Background"){
@@ -755,7 +687,7 @@ manager.on('newOffer', function(offer) {
 			theirassetid.forEach(function(item) {
 				counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
 			});
-			
+
 			counteroffer.setMessage("Sorry, I'm not gonna trade my Shan Gui emoticon / my current Profile Background");
 			counteroffer.send(function(err, status){
 				if (err){
@@ -765,12 +697,12 @@ manager.on('newOffer', function(offer) {
 					offer.decline();
 				}
 			});
-			
+
 			setTimeout(function(){
-				acceptConfirmation(); 
+				acceptConfirmation();
 			}, 3000);
 		}
-		
+
 		else {
 			var log = (currentdate() + " - Accepting ("+removedcards+ ":"+removedcards+") Trade Offer #" +offer.id+ " : " +offer.partner.getSteamID64());
 			console.log(log);
@@ -783,9 +715,9 @@ manager.on('newOffer', function(offer) {
 					client.webLogOn();
 				}
 			});
-			
+
 			setTimeout(function(){
-				acceptConfirmation(); 
+				acceptConfirmation();
 			}, 3000);
 		}
 	}
@@ -795,13 +727,13 @@ manager.on('newOffer', function(offer) {
 		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
 		offer.decline();
 	}
-	
+
 	else if ((offer.itemsToGive.length > offer.itemsToReceive.length) && removedcards > 0){
 		var log = (currentdate() + " - Countered ("+offer.itemsToGive.length+ ":"+offer.itemsToReceive.length+") Trade Offer #" +offer.id+ " : " +offer.partner.getSteamID64()+ " - Reason: Not same ammount");
 		console.log(log);
 		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
 		var counteroffer = offer.counter();
-		
+
 		offer.itemsToGive.forEach(function(item) {
 			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
 				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
@@ -818,14 +750,14 @@ manager.on('newOffer', function(offer) {
 				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
-		
+
 		myassetid.forEach(function(item) {
 			counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
 		});
 		theirassetid.forEach(function(item) {
 			counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
 		});
-		
+
 		if (counterofferSteamID == offer.partner.getSteamID64()){
 			counteroffer.setMessage("I'm not doing charity here");
 		}
@@ -835,7 +767,7 @@ manager.on('newOffer', function(offer) {
 		else {
 			counteroffer.setMessage(offer.itemsToReceive.length+ " : "+offer.itemsToReceive.length+" please. Read trade rules and don't be greedy");
 		}
-		
+
 		counteroffer.send(function(err, status){
 			if (err){
 				var log = (currentdate() + " - Unable to send Counter Offer - "+err);
@@ -845,9 +777,9 @@ manager.on('newOffer', function(offer) {
 			}
 		});
 		counterofferSteamID = offer.partner.getSteamID64();
-		
+
 		setTimeout(function(){
-			acceptConfirmation(); 
+			acceptConfirmation();
 		}, 3000);
 	}
 	else if ((offer.itemsToGive.length < offer.itemsToReceive.length) && removedcards > 0){
@@ -855,7 +787,7 @@ manager.on('newOffer', function(offer) {
 		console.log(log);
 		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
 		var counteroffer = offer.counter();
-		
+
 		offer.itemsToGive.forEach(function(item) {
 			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
 				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
@@ -872,14 +804,14 @@ manager.on('newOffer', function(offer) {
 				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
-		
+
 		myassetid.forEach(function(item) {
 			counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
 		});
 		theirassetid.forEach(function(item) {
 			counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
 		});
-		
+
 		counteroffer.setMessage("Hello, VanillaBot here... You put too many item in your trade offer.");
 		counteroffer.send(function(err, status){
 			if (err){
@@ -890,9 +822,9 @@ manager.on('newOffer', function(offer) {
 			}
 		});
 		counterofferSteamID = offer.partner.getSteamID64();
-		
+
 		setTimeout(function(){
-			acceptConfirmation(); 
+			acceptConfirmation();
 		}, 3000);
 	}
 	else if ((offer.itemsToGive.length == offer.itemsToReceive.length) && removedcards > 0){
@@ -900,7 +832,7 @@ manager.on('newOffer', function(offer) {
 		console.log(log);
 		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
 		var counteroffer = offer.counter();
-		
+
 		offer.itemsToGive.forEach(function(item) {
 			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
 				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
@@ -917,14 +849,14 @@ manager.on('newOffer', function(offer) {
 				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
-		
+
 		myassetid.forEach(function(item) {
 			counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
 		});
 		theirassetid.forEach(function(item) {
 			counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
 		});
-		
+
 		counteroffer.setMessage("Hello, VanillaBot here... No cross-set please.");
 		counteroffer.send(function(err, status){
 			if (err){
@@ -935,18 +867,18 @@ manager.on('newOffer', function(offer) {
 			}
 		});
 		counterofferSteamID = offer.partner.getSteamID64();
-		
+
 		setTimeout(function(){
-			acceptConfirmation(); 
+			acceptConfirmation();
 		}, 3000);
 	}
-	
+
 	else {
 		//Decline other trade offer
 		var log = (currentdate() + " - Rejecting Trade Offer from " +offer.partner.getSteamID64()+ " - Reason: Else");
 		console.log(log);
 		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-		
+
 		offer.decline();
 	}
 });

@@ -30,6 +30,8 @@ Change *config.json* value:
 - apikey: Steam API key (https://steamcommunity.com/dev/apikey)
 - rememberPassword: true
 
+(Optional) Change "MYBACKGROUND" text with your profile background name (example: "X Game Uncommon Profile Background") so it doesn't get traded away
+
 Run bot using `node bot.js`
 
 ## FAQ
@@ -54,7 +56,7 @@ Workaround exist by checking Market price *each card*, which takes a lot of time
 
 ## Add / Change Bot Feature
 
-First of all, you need to know Java or JavaScript to change the code
+First of all, sorry with the mess I created. Hopefully you're able to read it.
 
 Please visit relevant module wiki to add / change feature
 

@@ -11,7 +11,8 @@ $$ |   $$ |$$$$$$\  $$$$$$$\  $$\ $$ |$$ | $$$$$$\        $$ |  $$ | $$$$$$\ $$$
 	
 			https://github.com/PraskaLukestiwa/VanillaBot
 				Apache-2.0 License
-	
+				
+			       Sorry for this mess
 */
 
 var isJSON = true;
@@ -522,22 +523,8 @@ manager.on('newOffer', function(offer) {
 	offer.itemsToGive.forEach(function(item) {
 		
 		myassetid.push(item.assetid);
-		var unmarketablecards = false;
 		
-		
-		if ((item.type.includes("Trading Card") == true) && (unmarketablecards == true)){
-			itemBotGive.push("Non-Marketable Trading Cards");
-			unmarketablecards = false;
-		}
-		else if ((item.type.includes("Profile Background") == true) && (unmarketablecards == true)){
-			itemBotGive.push("Non-Marketable Profile Background");
-			unmarketablecards = false;
-		}
-		else if ((item.type.includes("Emoticon") == true) && (unmarketablecards == true)){
-			itemBotGive.push("Non-Marketable Emoticon");
-			unmarketablecards = false;
-		}
-		else if((item.type.includes("Profile Background") == true) || (item.type.includes("Emoticon") == true)){
+		if((item.type.includes("Profile Background") == true) || (item.type.includes("Emoticon") == true)){
 			var temp = item.type;
 			var temp = temp.replace(/Uncommon /g,'');
 			var temp = temp.replace(/Rare /g,'');
@@ -554,7 +541,7 @@ manager.on('newOffer', function(offer) {
 	for(i = 0; i < givenlength;i++){
 		for(j = 0; j < receivelength;j++){
 			if (itemBotGive[i] == itemBotReceive[j]){
-				if (itemBotGive[i] == "MyBackground"){
+				if (itemBotGive[i] == "MYBACKGROUND"){
 					removedcards++;
 					blacklistedcount++;
 					itemBotReceive.splice(j, 1);
@@ -734,18 +721,12 @@ manager.on('newOffer', function(offer) {
 			
 			var counteroffer = offer.counter();
 			offer.itemsToGive.forEach(function(item) {
-				if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-					counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-				}
-				if (item.type == "Shan Gui Emoticon"){
+				if (item.type == "MYBACKGROUND"){
 					counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 				}
 			});
 			offer.itemsToReceive.forEach(function(item) {
-				if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-					counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-				}
-				if (item.type == "Shan Gui Emoticon"){
+				if (item.type == "MYBACKGROUND"){
 					counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 				}
 			});
@@ -756,7 +737,7 @@ manager.on('newOffer', function(offer) {
 				counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
 			});
 			
-			counteroffer.setMessage("Sorry, I'm not gonna trade my Shan Gui emoticon / my current Profile Background");
+			counteroffer.setMessage("Sorry, I'm not gonna trade my MYBACKGROUND emoticon / my current Profile Background");
 			counteroffer.send(function(err, status){
 				if (err){
 					var log = (currentdate() + " Unable to send Counter Offer - "+err);
@@ -803,18 +784,12 @@ manager.on('newOffer', function(offer) {
 		var counteroffer = offer.counter();
 		
 		offer.itemsToGive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if (item.type == "MYBACKGROUND"){
 				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if (item.type == "MYBACKGROUND"){
 				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
@@ -857,18 +832,12 @@ manager.on('newOffer', function(offer) {
 		var counteroffer = offer.counter();
 		
 		offer.itemsToGive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if (item.type == "MYBACKGROUND"){
 				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if (item.type == "MYBACKGROUND"){
 				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
@@ -902,18 +871,12 @@ manager.on('newOffer', function(offer) {
 		var counteroffer = offer.counter();
 		
 		offer.itemsToGive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if (item.type == "MYBACKGROUND"){
 				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
-			if (item.type == "NEKOPARA Vol. 0 Profile Background"){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
-			}
-			if (item.type == "Shan Gui Emoticon"){
+			if (item.type == "MYBACKGROUND"){
 				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
 			}
 		});

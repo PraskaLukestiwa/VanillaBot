@@ -134,9 +134,7 @@ function acceptConfirmation() {
 }
 
 
-setInterval(twofactor, 1000);
-
-
+// TODO check if actuall need this
 String.prototype.insert = function (index, string) {
   if (index > 0)
     return this.substring(0, index) + string + this.substring(index, this.length);
@@ -250,7 +248,7 @@ client.on("friendMessage", function(senderID, message) {
 		var itemname = [];
 		text = text.split(" ");
 
-		text.forEach(function(item){
+		text.forEach(function(item){ // TODO optimize
 			if (item.includes("giveme")){
 
 			}
@@ -268,7 +266,7 @@ client.on("friendMessage", function(senderID, message) {
 			}
 			else {
 				inventory.forEach(function(item) {
-					if (item.type.includes(itemname) == true){
+					if (item.type.includes(itemname) == true){ // `type` is not `name`
 						offer.addMyItem(item);
 						countitem++;
 					}
@@ -285,7 +283,7 @@ client.on("friendMessage", function(senderID, message) {
 						}
 						else {
 							setTimeout(function(){
-								acceptConfirmation();
+								acceptConfirmation(); // TODO specify offerid
 								client.chatMessage(senderID, "Trade Offer sent");
 							}, 2000);
 						}
@@ -302,7 +300,7 @@ client.on("friendMessage", function(senderID, message) {
 		var itemname = [];
 		text = text.split(" ");
 
-		text.forEach(function(item){
+		text.forEach(function(item){ // TODO optimize
 			if (item.includes("takemy")){
 
 			}
@@ -442,22 +440,7 @@ manager.on('newOffer', function(offer) {
 	offer.itemsToGive.forEach(function(item) {
 
 		myassetid.push(item.assetid);
-		var unmarketablecards = false;
 
-
-		if ((item.type.includes("Trading Card") == true) && (unmarketablecards == true)){
-			itemBotGive.push("Non-Marketable Trading Cards");
-			unmarketablecards = false;
-		}
-		else if ((item.type.includes("Profile Background") == true) && (unmarketablecards == true)){
-			itemBotGive.push("Non-Marketable Profile Background");
-			unmarketablecards = false;
-		}
-		else if ((item.type.includes("Emoticon") == true) && (unmarketablecards == true)){
-			itemBotGive.push("Non-Marketable Emoticon");
-			unmarketablecards = false;
-		}
-		else
 		if((item.type.includes("Profile Background") == true) || (item.type.includes("Emoticon") == true)){
 			var temp = item.type;
 			temp = temp.replace('Uncommon ', '');
@@ -475,7 +458,8 @@ manager.on('newOffer', function(offer) {
 	for(i = 0; i < givenlength;i++){
 		for(j = 0; j < receivelength;j++){
 			if (itemBotGive[i] == itemBotReceive[j]){
-				if (itemBotGive[i] == "MyBackground"){
+				// TODO fix; "MYBACKGROUND" never will be in itemBotGive
+				if (itemBotGive[i] == "MYBACKGROUND"){
 					removedcards++;
 					blacklistedcount++;
 					itemBotReceive.splice(j, 1);
@@ -584,14 +568,14 @@ manager.on('newOffer', function(offer) {
 									var notes = "Donation from " + filteredName + " ( http://steamcommunity.com/profiles/" +offer.partner.getSteamID64()+ " ) \n Received " +offer.itemsToReceive.length+ " new item. Thank you. :bite: \n \n [b]Item List:[/b]\n";
 									offer.itemsToReceive.forEach(function(item, index) {
 										if (index >= 10){
-											// TODO why is it empty?
+											// TODO why is it empty? - optimize forEach -> for
 										}
 										else {
-												notes = notes + "- " +item.name+ " (" +item.type+ ")\n";
-											}
-										});
+											notes += "- " +item.name+ " (" +item.type+ ")\n";
+										}
+									});
 									if (offer.itemsToReceive.length >= 10){
-										notes = notes + "\n and more..";
+										notes += "\n and more..";
 									}
 									steam.postUserComment(config.my64id, notes); // Bot will post detailed donation
 									fs.appendFile("donation_backup.txt", notes,  {flag: 'w'}, function(err) {});
@@ -639,7 +623,7 @@ manager.on('newOffer', function(offer) {
 				counteroffer.removeTheirItem(genItemObj(assetid));
 			});
 
-			counteroffer.setMessage("Sorry, I'm not gonna trade my Shan Gui emoticon / my current Profile Background");
+			counteroffer.setMessage("Sorry, I'm not gonna trade my MYBACKGROUND emoticon / my current Profile Background");
 			counteroffer.send(function(err, status){
 				if (err){
 					logToFile("Unable to send Counter Offer - "+err);

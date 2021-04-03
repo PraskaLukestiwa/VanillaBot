@@ -12,6 +12,7 @@ $$ |   $$ |$$$$$$\  $$$$$$$\  $$\ $$ |$$ | $$$$$$\        $$ |  $$ | $$$$$$\ $$$
 			https://github.com/PraskaLukestiwa/VanillaBot
 				Apache-2.0 License
 
+			       Sorry for this mess
 */
 
 var isJSON = true;
@@ -440,7 +441,6 @@ manager.on('newOffer', function(offer) {
 	offer.itemsToGive.forEach(function(item) {
 
 		myassetid.push(item.assetid);
-
 		if((item.type.includes("Profile Background") == true) || (item.type.includes("Emoticon") == true)){
 			var temp = item.type;
 			temp = temp.replace('Uncommon ', '');
@@ -622,7 +622,6 @@ manager.on('newOffer', function(offer) {
 			theirassetid.forEach(function(assetid) {
 				counteroffer.removeTheirItem(genItemObj(assetid));
 			});
-
 			counteroffer.setMessage("Sorry, I'm not gonna trade my MYBACKGROUND emoticon / my current Profile Background");
 			counteroffer.send(function(err, status){
 				if (err){

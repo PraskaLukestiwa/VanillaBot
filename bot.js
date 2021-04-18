@@ -551,7 +551,7 @@ manager.on('newOffer', function(offer) {
 								setTimeout(function(){
 									donatorName = user.name;
 									donatorName = decode(donatorName);
-									donatorName = donatorName.replace('"', "");
+									donatorName = donatorName.replace(/"/g, "");
 									donatorName = donatorName.split(" ");
 									var filteredName = [];
 

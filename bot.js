@@ -1,36 +1,32 @@
 /*
 
-$$\    $$\                    $$\ $$\ $$\                 $$$$$$$\             $$\     
-$$ |   $$ |                   \__|$$ |$$ |                $$  __$$\            $$ |    
-$$ |   $$ |$$$$$$\  $$$$$$$\  $$\ $$ |$$ | $$$$$$\        $$ |  $$ | $$$$$$\ $$$$$$\   
-\$$\  $$  |\____$$\ $$  __$$\ $$ |$$ |$$ | \____$$\       $$$$$$$\ |$$  __$$\\_$$  _|  
- \$$\$$  / $$$$$$$ |$$ |  $$ |$$ |$$ |$$ | $$$$$$$ |      $$  __$$\ $$ /  $$ | $$ |    
-  \$$$  / $$  __$$ |$$ |  $$ |$$ |$$ |$$ |$$  __$$ |      $$ |  $$ |$$ |  $$ | $$ |$$\ 
+$$\    $$\                    $$\ $$\ $$\                 $$$$$$$\             $$\
+$$ |   $$ |                   \__|$$ |$$ |                $$  __$$\            $$ |
+$$ |   $$ |$$$$$$\  $$$$$$$\  $$\ $$ |$$ | $$$$$$\        $$ |  $$ | $$$$$$\ $$$$$$\
+\$$\  $$  |\____$$\ $$  __$$\ $$ |$$ |$$ | \____$$\       $$$$$$$\ |$$  __$$\\_$$  _|
+ \$$\$$  / $$$$$$$ |$$ |  $$ |$$ |$$ |$$ | $$$$$$$ |      $$  __$$\ $$ /  $$ | $$ |
+  \$$$  / $$  __$$ |$$ |  $$ |$$ |$$ |$$ |$$  __$$ |      $$ |  $$ |$$ |  $$ | $$ |$$\
    \$  /  \$$$$$$$ |$$ |  $$ |$$ |$$ |$$ |\$$$$$$$ |      $$$$$$$  |\$$$$$$  | \$$$$  |
-    \_/    \_______|\__|  \__|\__|\__|\__| \_______|      \_______/  \______/   \____/ 
-	
+    \_/    \_______|\__|  \__|\__|\__|\__| \_______|      \_______/  \______/   \____/
+
 			https://github.com/PraskaLukestiwa/VanillaBot
 				Apache-2.0 License
-				
+
 			       Sorry for this mess
 */
 
 var isJSON = true;
 var validLoginKey = "";
 var config = require("./config.json");
-//var login_key = require("./loginkey.json");
 
 var SteamCommunity = require("steamcommunity");
 var fs = require('fs');
-var fs2 = require('fs');
 var steam = new SteamCommunity();
 var SteamTotp = require('steam-totp');
 var SteamUser = require('steam-user');
 var client = new SteamUser();
-var SteamID = SteamCommunity.SteamID;
 var admin = config.admin;
 var TradeOfferManager = require('steam-tradeoffer-manager');
-var identitysecret = config.trade;
 var decode = require('decode-html');
 var manager = new TradeOfferManager({
 	"steam": client,
@@ -40,127 +36,88 @@ var manager = new TradeOfferManager({
 	"globalAssetCache": true
 });
 
+function logToFile(str, filename){
+	str = currentdate() + " - "+ str;
+	console.log(str);
+    fs.appendFile(filename || "log.txt", str + "\n",  {flag: 'a'}, function(err) {});
+}
+const BlocklistFileName= 'blocklist.txt';
+const LoginkeyFileName = 'loginkey.json';
 try {
-	var rawdata = fs.readFileSync('loginkey.json');  
-	var fileLoginKey = JSON.parse(rawdata);  
+	JSON.parse(fs.readFileSync(LoginkeyFileName));
 } catch (e) {
 	isJSON = false;
 }
 
 if (isJSON == true){
-	var login_key = require("./loginkey.json");
+	var login_key = require("./"+LoginkeyFileName);
 	validLoginKey = login_key.loginkey;
 }
 else {
-	var jsonformat = '{ "loginkey" : "" }';
-	fs.appendFile("loginkey.json", jsonformat,  {flag: 'w'}, function(err) {});
+	saveLoginKey('');
 	validLoginKey = "";
 }
 
-var antispam;
-var markedSteamID;
-var unblockedSteamID;
-var removefriendSteamID;
-var blockSteamID;
-var blocklistSteamID;
-var donatorName;
-var spammerSteamID;
-var counterofferSteamID;
+function saveLoginKey(key){
+	var jsonformat = '{ "loginkey" : "' +key+ '" }';
+	fs.appendFile(LoginkeyFileName, jsonformat,  {flag: 'w'}, function(err) {});
+}
+// TODO replace by actual items names/ids
+const blacklistedMyItemsTypes = [
+	"NEKOPARA Vol. 0 Profile Background",
+	"Shan Gui Emoticon",
+];
 
-var cards;
-var date;
-var lastAdd = 0;
+function genItemObj(assetid, appid, contextid){
+	return {
+		appid:     appid || 753,
+		contextid: contextid || 6,
+		assetid:   assetid
+	};
+}
+
 
 var lastOfferID;
-var vanityname;
 
-//fs.appendFile("log.txt", "",  {flag: 'w'}, function(err) {});
-fs.appendFile("log.txt", "",  {flag: 'a'}, function(err) {});
 
-function matchDescription() { 
-    //return 'This item can no longer be bought or sold on the Community Market.';
-	return 'Community Market';
-}
-function rolldice() {
-	var x = Math.floor((Math.random() * 6) + 1);
-	return (x);
-}
 function currentdate(){
-	var date = new Date(); 
+	var date = new Date();
 	var dateformat = (("0" +date.getDate()).slice(-2) + "/"
 					+ (+date.getMonth()+1) + "/"
 					+ ("0" +date.getFullYear()).slice(-2) + " - "
 					+ ("0" +date.getHours()).slice(-2) + ":"
 					+ ("0" +date.getMinutes()).slice(-2) + ":"
 					+ ("0" +date.getSeconds()).slice(-2));
-	return (dateformat);
+	return dateformat;
 }
 function twofactor() {
 	var tfa = SteamTotp.generateAuthCode(config.tfa);
 	return (tfa);
 }
-function stmCommand(SteamID){
-	
-	var myType = [];
-	var myAssetId = [];
-	var myItemName = [];
-	
-	var theirType = [];
-	var theirAssetId = [];
-	var theirItemName = [];
-	
-	manager.getInventoryContents(753, 6, true, function(err, inventory, currencies){
-		if (err){
-			var log = (currentdate() + " - Unable to load my inventory - "+err);
-			console.log(log);
-			fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-			client.chatMessage(SteamID, err);
-			setTimeout(function(){
-				client.chatMessage(SteamID, "If this error keep happening, please contact my Owner or leave comment");
-			}, 1500);
-		}
-		else {
-			inventory.forEach(function(item) {
-				myType.push(item.type);
-				myAssetId.push(item.assetid);
-				myItemName.push(item.name);
-			});
-			console.log(myType);
-			console.log(myAssetId);
-			console.log(myItemName);
-		}
-	});
-};
+
+
 function acceptConfirmation() {
 	var time = Math.floor(Date.now() / 1000);
 	var conf_key = SteamTotp.getConfirmationKey(config.trade, time, 'conf');
 	var allowKey = SteamTotp.getConfirmationKey(config.trade, time, 'allow');
-	
+
 	setTimeout(function(){
-		
+
 		steam.getConfirmations(time, conf_key, function(err, confirmations){
 			if (err){
-				var log = (currentdate() + " - "+ err);
-				fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-				console.log(log);
+				logToFile(err);
 			}
 			else if (confirmations.length == 0){
-				var log = (currentdate() + " - Nothing to confirm");
-				console.log(log);
-				fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+				logToFile("Nothing to confirm");
 			}
 			else {
 				steam.acceptAllConfirmations(time, conf_key, allowKey, function(err, conf) {
 					if (err) {
-						var log = (currentdate() + " - "+ err);
-						fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-						console.log(log);
+						logToFile(err);
 					}
 					else {
 						conf.forEach (function(item) {
-							var log = (currentdate() + " - Confirmed Trade Offer #" +item.creator);
-							console.log(log);
-							fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+							logToFile("Confirmed Trade Offer #" +item.creator);
 						});
 					}
 				});
@@ -168,15 +125,9 @@ function acceptConfirmation() {
 		});
 	}, 1000);
 }
-function spamtimer() {
-	antispam = 0;
-	markedSteamID = 0;
-}
 
-setInterval(currentdate, 1000);
-setInterval(twofactor, 1000);
-setInterval(spamtimer, 2000);
 
+// TODO check if actuall need this
 String.prototype.insert = function (index, string) {
   if (index > 0)
     return this.substring(0, index) + string + this.substring(index, this.length);
@@ -195,48 +146,37 @@ client.logOn({
 });
 
 client.on('loggedOn', function (details) {
-	var log = (currentdate() + " - Sucesfully Logged in");
-	fs.appendFile("log.txt", log+ "\n",  {flag: 'a'}, function(err) {});
-	console.log(log);
-	vanityname = client.vanityURL;
+	logToFile( "Sucesfully Logged in");
 	client.setPersona(1); //"0": "Offline", "1": "Online", "2": "Busy", "3": "Away", "4": "Snooze", "5": "LookingToTrade", "6": "LookingToPlay"
 	client.setUIMode(1);  //"None": 0, "BigPicture": 1, "Mobile": 2, "Web": 3
-	
-	//client.gamesPlayed("Custom Steam Game titles"); //63 characters - http://www.lettercount.com/
+
+	//client.gamesPlayed("Custom Steam Game titles"); //63 characters
 	//client.gamesPlayed(1121910);
 });
 
 client.on('error', function(err) {
-	var log = (currentdate() + " - Logon Error: "+err);
-	fs.appendFile("log.txt", log+ "\n",  {flag: 'a'}, function(err) {});
-	console.log(log);
+	logToFile("Logon Error: "+err);
 });
 
 client.on('webSession', function(sessionID, cookies) {
     steam.setCookies(cookies);
     manager.setCookies(cookies);
-	var log = (currentdate() + " - Got our cookies");
-	fs.appendFile("log.txt", log+ "\n",  {flag: 'a'}, function(err) {});
-	console.log(log);
-	
+	logToFile("Got our cookies");
+
 	setTimeout(function(){
 		steam.resetItemNotifications();
 	}, 10000);
 });
 
 client.on('loginKey', function (key) {
-	var jsonformat = '{ "loginkey" : "' +key+ '" }';
-	fs.appendFile("loginkey.json", jsonformat,  {flag: 'w'}, function(err) {});
+	saveLoginKey(key);
 });
 
 client.on('friendRelationship', function(steamID, relationship) {
     if (relationship == SteamUser.Steam.EFriendRelationship.RequestRecipient) {
-		var log = (currentdate() + " - Incoming friend request from http://steamcommunity.com/profiles/" +steamID);
-		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-		console.log(log);
+		logToFile("Incoming friend request from http://steamcommunity.com/profiles/" +steamID);
         client.addFriend(steamID);
-		lastAdd == steamID;
-		
+
 		/*
 		setTimeout(function(){
 			client.chatMessage(steamID, "Hello, thanks for the add");
@@ -247,36 +187,27 @@ client.on('friendRelationship', function(steamID, relationship) {
 		*/
     }
 	else if (relationship == SteamUser.Steam.EFriendRelationship.None) {
-		var log = (currentdate() + " - " +steamID+ " just removed from friend list");
-		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-		console.log(log);
-	}
-	else {
-		
+		logToFile(steamID+ " just removed from friend list");
 	}
 });
 
 steam.on("sessionExpired", function(err) {
 	if (err) {
 		setTimeout(function(){
-			var log = (currentdate() + " - Refreshing our session");
-			fs.appendFile("log.txt", log+ "\n",  {flag: 'a'}, function(err) {});
-			console.log(log);
+			logToFile("Refreshing our session");
 		}, 500);
-		
+
 		client.webLogOn();
-		
+
 		setTimeout(function(){
 			manager.getOffer(lastOfferID, function (err, offer){
 				if (err){
-					var log = (currentdate() + " - "+ err);
-					fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-					console.log(log);
+					logToFile(err);
 				}
 				else {
 					offer.accept();
 					setTimeout(function(){
-						acceptConfirmation(); 
+						acceptConfirmation();
 					}, 3000);
 				}
 			});
@@ -294,44 +225,40 @@ setTimeout(function(){
 */
 
 client.on("friendMessage", function(senderID, message) {
-	
+
 	var text = message;
-	
+
 	// ---------- LOG INCOMING CHAT TO CONSOLE AND FILE CHATBOG_LOG.TXT ---------- //
-	var log = (currentdate() + " - Message from " + senderID+ " : " + message);
-	fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-	console.log(log);
-	
+	logToFile("Message from " + senderID+ " : " + message);
+
 	// ---------- ADMIN COMMAND ----------
-	
+
 	if ((senderID == admin) && (text.includes("giveme") == true)){
-		
+
 		var offer = manager.createOffer(admin);
 		var countitem = 0;
 		var itemname = [];
 		text = text.split(" ");
-		
-		text.forEach(function(item){
+
+		text.forEach(function(item){ // TODO optimize
 			if (item.includes("giveme")){
-				
+
 			}
 			else {
 				itemname.push(item);
 			}
 		});
 		itemname = itemname.join(" ");
-		
+
 		manager.getInventoryContents(753, 6, true, function(err, inventory, currencies){
 			client.chatMessage(senderID, "Loading Inventories");
 			if (err){
-				var log = (currentdate() + " - Unable to send item - "+err);
-				console.log(log);
-				fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+				logToFile("Unable to send item - "+err);
 				client.chatMessage(senderID, "Done");
 			}
 			else {
 				inventory.forEach(function(item) {
-					if (item.type.includes(itemname) == true){
+					if (item.type.includes(itemname) == true){ // `type` is not `name`
 						offer.addMyItem(item);
 						countitem++;
 					}
@@ -342,14 +269,13 @@ client.on("friendMessage", function(senderID, message) {
 				else {
 					offer.send(function(err, status){
 						if (err){
-							var log = (currentdate() + " Unable to send Trade Offer - "+err);
-							console.log(log);
-							fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-							client.chatMessage(senderID, "Unable to send trade offer: "+err);
+							var str = "Unable to send Trade Offer - "+err;
+							logToFile(str);
+							client.chatMessage(senderID, str);
 						}
 						else {
 							setTimeout(function(){
-								acceptConfirmation();
+								acceptConfirmation(); // TODO specify offerid
 								client.chatMessage(senderID, "Trade Offer sent");
 							}, 2000);
 						}
@@ -357,30 +283,28 @@ client.on("friendMessage", function(senderID, message) {
 				}
 			}
 		});
-		
+
 	}
 	else if ((senderID == admin) && (text.includes("takemy") == true)){
-		
+
 		var offer = manager.createOffer(admin);
 		var countitem = 0;
 		var itemname = [];
 		text = text.split(" ");
-		
-		text.forEach(function(item){
+
+		text.forEach(function(item){ // TODO optimize
 			if (item.includes("takemy")){
-				
+
 			}
 			else {
 				itemname.push(item);
 			}
 		});
 		itemname = itemname.join(" ");
-		
+
 		manager.getUserInventoryContents(admin, 753, 6, true, function(err, inventory, currencies){
 			if (err){
-				var log = (currentdate() + " - Unable to send item - "+err);
-				console.log(log);
-				fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+				logToFile("Unable to send item - "+err);
 				client.chatMessage(senderID, "Done");
 			}
 			else {
@@ -396,10 +320,9 @@ client.on("friendMessage", function(senderID, message) {
 				else {
 					offer.send(function(err, status){
 						if (err){
-							var log = (currentdate() + " Unable to send Trade Offer - "+err);
-							console.log(log);
-							fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-							client.chatMessage(senderID, "Unable to send trade offer: "+err);
+							var str = "Unable to send Trade Offer - "+err;
+							logToFile(str);
+							client.chatMessage(senderID, str);
 						}
 						else {
 							client.chatMessage(senderID, "Trade Offer sent");
@@ -408,7 +331,7 @@ client.on("friendMessage", function(senderID, message) {
 				}
 			}
 		});
-		
+
 	}
 	else if ((senderID == admin) && (text == "relog")){
 		client.chatMessage(senderID, "ReLoggin");
@@ -425,15 +348,15 @@ client.on("friendMessage", function(senderID, message) {
 	else if ((senderID == admin) && (text == "apikey")){
 		client.chatMessage(senderID, config.apikey);
 	}
-	else if ((senderID == admin) && (text.includes("addcomment") == true)){
+	else if ((senderID == admin) && text.includes("addcomment") ) {
 		steam.postUserComment(config.my64id, text.substring(11,text.length));
 		client.chatMessage(senderID, "Done");
 	}
-	else if ((senderID == admin) && (text.includes("blocklist") == true)){
-		blocklistSteamID = (text.replace ( /[^\d]/g, '' ));
+	else if ((senderID == admin) && text.includes("blocklist") ) {
+		var blocklistSteamID = text.replace ( /\D/g, '' );
 		var found = false;
-		var fileread = fs.readFileSync('blocklist.txt').toString().split("\n");
-		
+		var fileread = fs.readFileSync(BlocklistFileName).toString().split("\n");
+
 		for(i in fileread) {
 			if (fileread[i].includes(blocklistSteamID)){
 				client.chatMessage(senderID, fileread[i]);
@@ -442,105 +365,84 @@ client.on("friendMessage", function(senderID, message) {
 			}
 			found = false;
 		}
-		if (found == false){
+		if (!found){
 			client.chatMessage(senderID, "I can't found it on block list");
 		}
 	}
-	else if ((senderID == admin) && (text.includes("unblock") == true)){
-		unblockedSteamID = (text.replace ( /[^\d]/g, '' ));
+	else if ((senderID == admin) && text.includes("unblock") ){
+		var unblockedSteamID = text.replace ( /\D/g, '' );
 		client.unblockUser(unblockedSteamID);
 		client.chatMessage(senderID, unblockedSteamID+ " Unblocked");
 	}
-	else if ((senderID == admin) && (text.includes("removefriend") == true)){
-		removefriendSteamID = (text.replace ( /[^\d]/g, '' ));
+	else if ((senderID == admin) && text.includes("removefriend") ){
+		var removefriendSteamID = text.replace ( /\D/g, '' );
 		client.removeFriend(removefriendSteamID);
 		client.chatMessage(senderID, removefriendSteamID+ " Removed");
 	}
-	else if ((senderID == admin) && (text.includes("blockuser") == true)){
-		blockSteamID = (text.replace ( /[^\d]/g, '' ));
+	else if ((senderID == admin) && text.includes("blockuser") ){
+		var blockSteamID = text.replace ( /\D/g, '' );
 		client.removeFriend(blockSteamID);
 		client.blockUser(blockSteamID);
 		client.chatMessage(senderID, blockSteamID+ " Blocked");
-		var log = (currentdate() + " - Blocked " +blockSteamID+ ". Reason: Blocked by Owner");
-		fs.appendFile("blocklist.txt", log + "\n",  {flag: 'a'}, function(err) {});
+		logToFile("Blocked " +blockSteamID+ ". Reason: Blocked by Owner", BlocklistFileName);
 	}
 	else if ((senderID == admin) && message == "2fa"){
 		client.chatMessage(senderID, twofactor());
 	}
-	else if (spammerSteamID == senderID.getSteamID64()){
-		//people who trying to spam will not receive any message from us
-	}
 	else if (text == "ping"){
 		client.chatMessage(senderID, "pong");
 	}
-	
-	
-	antispam = text;
-	markedSteamID = senderID.getSteamID64();
-	
+
 })
 
 
 
 manager.on('newOffer', function(offer) {
-	
-	var trademsg = offer.message;
-	
-	var copyOffer = offer;
+
 	var itemBotGive = [];
 	var itemBotReceive = [];
 	var myassetid = [];
 	var theirassetid = [];
-	
+
 	var givenlength = offer.itemsToGive.length;
 	var receivelength = offer.itemsToReceive.length;
 	var removedcards = 0;
-	var unmarketablecards = false;
 	var blacklisteditem = false;
 	var blacklistedcount = 0;
 	var instantreject = false;
-	
-	var skip = false;
-	
+
+	var counterofferSteamID;
+
+	function parseItem(item, arrayA, arrayB) {
+
+		arrayA.push(item.assetid);
+		if ( item.type.includes("Profile Background") || item.type.includes("Emoticon") ) {
+			var temp = item.type;
+			temp = temp.replace('Uncommon ', '');
+			temp = temp.replace('Rare ', '');
+			arrayB.push(temp);
+		}
+		else if (item.type.includes("Trading Card")) {
+			arrayB.push(item.type);
+		}
+		else {
+			instantreject = true;
+			// TODO break forEach
+		}
+	}
+
 	offer.itemsToReceive.forEach(function(item) {
-		
-		theirassetid.push(item.assetid);
-		
-		if((item.type.includes("Profile Background") == true) || (item.type.includes("Emoticon") == true)){
-			var temp = item.type;
-			var temp = temp.replace(/Uncommon /g,'');
-			var temp = temp.replace(/Rare /g,'');
-			itemBotReceive.push(temp);
-		}
-		else if (item.type.includes("Trading Card") == true) {
-			itemBotReceive.push(item.type);
-		}
-		else {
-			instantreject = true;
-		}
+		parseItem(item, theirassetid, itemBotReceive);
 	});
-	
+
 	offer.itemsToGive.forEach(function(item) {
-		
-		myassetid.push(item.assetid);
-		
-		if((item.type.includes("Profile Background") == true) || (item.type.includes("Emoticon") == true)){
-			var temp = item.type;
-			var temp = temp.replace(/Uncommon /g,'');
-			var temp = temp.replace(/Rare /g,'');
-			itemBotGive.push(temp);
-		}
-		else if (item.type.includes("Trading Card") == true) {
-			itemBotGive.push(item.type);
-		}
-		else {
-			instantreject = true;
-		}
+		parseItem(item, myassetid, itemBotGive);
 	});
-		
+
 	for(i = 0; i < givenlength;i++){
 		for(j = 0; j < receivelength;j++){
 			if (itemBotGive[i] == itemBotReceive[j]){
+				// TODO fix; "MYBACKGROUND" never will be in itemBotGive
 				if (itemBotGive[i] == "MYBACKGROUND"){
 					removedcards++;
 					blacklistedcount++;
@@ -558,59 +460,38 @@ manager.on('newOffer', function(offer) {
 			}
 		}
 	}
-	
+
 	//Trade logic start here
-	if (offer.partner.getSteamID64() == admin){
-		
-		if (offer.itemsToGive.length == 0){
-			var log = (currentdate() + " - Accepting Trade Offer #" +offer.id+ " from Owner: " +offer.partner.getSteamID64());
-			fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-			console.log(log);
-			lastOfferID = offer.id;
-			offer.accept(function(err) {
-				if (err) {
-					var log = (currentdate() + " - "+ err);
-					fs.appendFile("log.txt", log+ "\n",  {flag: 'a'}, function(err) {});
-				}
-			});
-		}
-		else {
-			var log = (currentdate() + " - Accepting Trade Offer #" +offer.id+ " from Owner: " +offer.partner.getSteamID64());
-			fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-			console.log(log);
-			lastOfferID = offer.id;
-			offer.accept(function(err) {
-				if (err) {
-					var log = (currentdate() + " - "+ err);
-					fs.appendFile("log.txt", log+ "\n",  {flag: 'a'}, function(err) {});
-				}
-			});
-			setTimeout(function(){
-				acceptConfirmation(); 
-			}, 3000);
-		}
-	}
-	
-	else if (instantreject == true){
-		var log = (currentdate() + " - Rejecting Trade Offer from " +offer.partner.getSteamID64()+ " - Reason: Other item present");
-		console.log(log);
-		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+	var partnerSteamID64 = offer.partner.getSteamID64();
+	if (partnerSteamID64 == admin){
+
+		logToFile("Accepting Trade Offer #" +offer.id+ " from Owner: " +partnerSteamID64);
+		lastOfferID = offer.id;
+		offer.accept(function(err) {
+			if (err) {
+				logToFile(err);
+			} else if (offer.itemsToGive.length > 0){
+				setTimeout(function(){
+					acceptConfirmation();
+				}, 3000);
+			}
+		});
+
+	} else if (instantreject){
+		logToFile("Rejecting Trade Offer from " +partnerSteamID64+ " - Reason: Other item present");
 		offer.decline();
 	}
-	else if (offer.isGlitched() == true){
-		var log = (currentdate() + " - Glitched Trade Offer #" +offer.id+ ", we'll try again later");
+	else if (offer.isGlitched()){
+		logToFile("Glitched Trade Offer #" +offer.id+ ", we'll try again later");
 	}
 	else if (offer.itemsToReceive.length == 0){														// Bot receive 0 item  -- begging, blocked
-		client.removeFriend(offer.partner.getSteamID64());
-		client.blockUser(offer.partner.getSteamID64());
-		var log = (currentdate() + " - Blocked " +offer.partner.getSteamID64()+ ". Reason: Begging");
-		fs.appendFile("blocklist.txt", log + "\n",  {flag: 'a'}, function(err) {});
-		console.log(log);
+		client.removeFriend(partnerSteamID64);
+		client.blockUser(partnerSteamID64);
+		logToFile("Blocked " +partnerSteamID64+ ". Reason: Begging", BlocklistFileName);
 		offer.decline();
-	}
-	
-	else if (offer.itemsToGive.length == 0){ 														// Bot give 0 item     -- donation
-	
+
+	} else if (offer.itemsToGive.length == 0){ 														// Bot give 0 item     -- donation
+
 		var isDonation = true;
 		offer.itemsToReceive.forEach(function(item) {
 			if (item.type.includes("Profile Background") == true || item.type.includes("Emoticon") == true || item.type.includes("Trading Card") == true || item.type.includes("Booster Pack") == true){
@@ -620,75 +501,53 @@ manager.on('newOffer', function(offer) {
 				isDonation = false;
 			}
 		});
-		
-		if (isDonation == true){
+
+		if (isDonation){
 			setTimeout(function(){
 				var id = offer.partner;
 				steam.getSteamUser(id, function(err, user) {
 					if (err) {
-						console.log(err);
-						fs.appendFile("log.txt", "DONATION ERROR" +err + " - Donation (" +offer.partner.getSteamID64()+ ") \n",  {flag: 'a'}, function(err) {});
+						logToFile("DONATION ERROR" +err + " - Donation (" +partnerSteamID64+ ")");
 						client.chatMessage(admin, "Someone donated but there's an error, please check log "+currentdate());
 					}
 					else {
 						offer.accept(function(err) {
 							if (err) {
-								console.log(err);
-								fs.appendFile("log.txt", "DONATION ERROR" +err + " (" +offer.partner.getSteamID64()+ ") \n",  {flag: 'a'}, function(err) {});
+								logToFile("DONATION ERROR" +err + " - Donation (" +partnerSteamID64+ ")");
 								client.chatMessage(admin, "Someone donated but there's an error, please check log "+currentdate());
 							}
 							else {
-								var log = (currentdate() + " - Donation from " +offer.partner.getSteamID64()+ " - Receive "+offer.itemsToReceive.length+" new item");
-								fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-								console.log(log);
-								steam.postUserComment(offer.partner.getSteamID64(), "+rep, thanks for supporting VanillaBot :bite:", function (err){
+								logToFile("Donation from " +partnerSteamID64+ " - Receive "+offer.itemsToReceive.length+" new item");
+								steam.postUserComment(partnerSteamID64, "+rep, thanks for supporting VanillaBot :bite:", function (err){
 									if (err){
-										var log = (currentdate() + " - Unable to post profile comment, sending 'thanks' messages");
-										console.log(log)
-										fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-										client.chatMessage(offer.partner.getSteamID64(), "Hello, thanks for supporting VanillaBot. :bite:");
+										logToFile("Unable to post profile comment, sending 'thanks' messages");
+										client.chatMessage(partnerSteamID64, "Hello, thanks for supporting VanillaBot. :bite:");
 									}
 									else {
-										var log = (currentdate() + " - Done posting profile comment");
-										console.log(log)
-										fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+										logToFile("Done posting profile comment");
 									}
 								});
-								client.chatMessage(admin, ""+offer.partner.getSteamID64()+" just send me donation. Receive "+offer.itemsToReceive.length+" new item(s)");								//Reminds me in case if it's fail
-								
-								setTimeout(function(){	
-									donatorName = user.name;
-									donatorName = decode(donatorName);
-									donatorName = donatorName.replace(/"/g, "");
-									donatorName = donatorName.split(" ");
-									var filteredName = [];
-									
-									donatorName.forEach(function(item){
-										if (item.includes(".com") || item.includes("csgo") || item.includes(".gg") || item.includes(".RU") || item.includes("CSGO")){
-											
-										}
-										else {
-											filteredName.push(item);
-										}
-									});
-									filteredName = filteredName.join(" ");
-									
-									var notes = "Donation from " + filteredName + " ( http://steamcommunity.com/profiles/" +offer.partner.getSteamID64()+ " ) \n Received " +offer.itemsToReceive.length+ " new item. Thank you. :bite: \n \n [b]Item List:[/b]\n";
-									offer.itemsToReceive.forEach(function(item, index) {
-										if (index >= 10){
-											
-										}
-										else {
-												notes = notes + "- " +item.name+ " (" +item.type+ ")\n";
-											}
-										});
-									if (offer.itemsToReceive.length >= 10){
-										notes = notes + "\n and more..";
+								client.chatMessage(admin, ""+partnerSteamID64+" just send me donation. Receive "+offer.itemsToReceive.length+" new item(s)");								//Reminds me in case if it's fail
+
+								setTimeout(function(){
+									var filteredName = decode(user.name).replace(/"/g, "").split(" ").filter(function(item){
+										return !item.match(/\.com|csgo|\.gg|\.ru"/i);
+									}).join(" ");
+
+									var notes = "Donation from " + filteredName + " ( http://steamcommunity.com/profiles/" +partnerSteamID64+ " ) \n Received " +offer.itemsToReceive.length+ " new item. Thank you. :bite: \n \n [b]Item List:[/b]\n";
+
+									var itemsCountForNotes = 10;
+									for (var i=0, n=Math.min(itemsCountForNotes, offer.itemsToReceive.length); i<n; i++) {
+										notes += "- " +item.name+ " (" +item.type+ ")\n";
 									}
-									steam.postUserComment(config.my64id, notes);										// Bot will post detailed donation
+
+									if (offer.itemsToReceive.length >= itemsCountForNotes) {
+										notes += "\n and more..";
+									}
+									steam.postUserComment(config.my64id, notes); // Bot will post detailed donation
 									fs.appendFile("donation_backup.txt", notes,  {flag: 'w'}, function(err) {});
-									//client.addFriend(offer.partner.getSteamID64());
-									
+									//client.addFriend(partnerSteamID64);
+
 								}, 2000);
 							}
 						});
@@ -697,111 +556,94 @@ manager.on('newOffer', function(offer) {
 			}, 1000);
 		}
 		else {
-			var log = (currentdate() + " - Rejecting Donation from " +offer.partner.getSteamID64());
-			console.log(log)
-			fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+			logToFile("Rejecting Donation from " +partnerSteamID64);
 			offer.decline();
-			client.chatMessage(offer.partner.getSteamID64(), "Hello, I'm sorry but I have to reject your donation. I only accept Trading Cards, Emoticon, and Background donation :doubt: ");
+			client.chatMessage(partnerSteamID64, "Hello, I'm sorry but I have to reject your donation. I only accept Trading Cards, Emoticon, and Background donation :doubt: ");
 		}
-	}
-	
-	else if((givenlength == removedcards) && (receivelength == removedcards)){
-		
+
+	} else if((givenlength == removedcards) && (receivelength == removedcards)){
+
 		if (blacklisteditem == true && removedcards == blacklistedcount){
-			var log = (currentdate() + " - Rejecting Trade Offer from " +offer.partner.getSteamID64()+ " - Reason: Blacklisted Item");
-			console.log(log)
-			fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+			logToFile("Rejecting Trade Offer from " +partnerSteamID64+ " - Reason: Blacklisted Item");
 			offer.decline();
 		}
 		else if (blacklisteditem == true){
-			
-			var log = (currentdate() + " - Countered ("+removedcards+ ":"+removedcards+") Trade Offer #" +offer.id+ " : " +offer.partner.getSteamID64()+ " - eason: Blacklisted Item");
-			console.log(log);
-			fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-			
+
+			logToFile("Countered ("+removedcards+ ":"+removedcards+") Trade Offer #" +offer.id+ " : " +partnerSteamID64+ " - eason: Blacklisted Item");
+
 			var counteroffer = offer.counter();
 			offer.itemsToGive.forEach(function(item) {
-				if (item.type == "MYBACKGROUND"){
-					counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+				if(blacklistedMyItemsTypes.includes(item.type)){
+					counteroffer.removeMyItem(genItemObj(item.assetid, item.appid, item.contextid));
 				}
 			});
 			offer.itemsToReceive.forEach(function(item) {
-				if (item.type == "MYBACKGROUND"){
-					counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+				if(blacklistedMyItemsTypes.includes(item.type)){
+					counteroffer.removeTheirItem(genItemObj(item.assetid, item.appid, item.contextid));
 				}
 			});
-			myassetid.forEach(function(item) {
-				counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
+			myassetid.forEach(function(assetid) {
+				counteroffer.removeMyItem(genItemObj(assetid));
 			});
-			theirassetid.forEach(function(item) {
-				counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
+			theirassetid.forEach(function(assetid) {
+				counteroffer.removeTheirItem(genItemObj(assetid));
 			});
-			
 			counteroffer.setMessage("Sorry, I'm not gonna trade my MYBACKGROUND emoticon / my current Profile Background");
 			counteroffer.send(function(err, status){
 				if (err){
-					var log = (currentdate() + " Unable to send Counter Offer - "+err);
-					console.log(log);
-					fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+					logToFile("Unable to send Counter Offer - "+err);
 					offer.decline();
 				}
 			});
-			
+
 			setTimeout(function(){
-				acceptConfirmation(); 
+				acceptConfirmation();
 			}, 3000);
-		}
-		
-		else {
-			var log = (currentdate() + " - Accepting ("+removedcards+ ":"+removedcards+") Trade Offer #" +offer.id+ " : " +offer.partner.getSteamID64());
-			console.log(log);
+
+		} else {
 			lastOfferID = offer.id;
-			fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+			logToFile("Accepting ("+removedcards+ ":"+removedcards+") Trade Offer #" +offer.id+ " : " +partnerSteamID64);
 			offer.accept(function(err) {
 				if (err) {
-					var log = (currentdate() + " - "+ err);
-					fs.appendFile("log.txt", log+ "\n",  {flag: 'a'}, function(err) {});
+					logToFile(err);
 					client.webLogOn();
 				}
 			});
-			
+
 			setTimeout(function(){
-				acceptConfirmation(); 
+				acceptConfirmation();
 			}, 3000);
 		}
 	}
 	else if(removedcards == 0){
-		var log = (currentdate() + " - Rejecting Trade Offer from " +offer.partner.getSteamID64()+ " - Reason: Cross-Set");
-		console.log(log)
-		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+		logToFile("Rejecting Trade Offer from " +partnerSteamID64+ " - Reason: Cross-Set");
 		offer.decline();
 	}
-	
+
 	else if ((offer.itemsToGive.length > offer.itemsToReceive.length) && removedcards > 0){
-		var log = (currentdate() + " - Countered ("+offer.itemsToGive.length+ ":"+offer.itemsToReceive.length+") Trade Offer #" +offer.id+ " : " +offer.partner.getSteamID64()+ " - Reason: Not same ammount");
-		console.log(log);
-		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+		logToFile("Countered ("+offer.itemsToGive.length+ ":"+offer.itemsToReceive.length+") Trade Offer #" +offer.id+ " : " +partnerSteamID64+ " - Reason: Not same ammount");
+
 		var counteroffer = offer.counter();
-		
+
 		offer.itemsToGive.forEach(function(item) {
-			if (item.type == "MYBACKGROUND"){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+			if(blacklistedMyItemsTypes.includes(item.type)){
+				counteroffer.removeMyItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
-			if (item.type == "MYBACKGROUND"){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+			if(blacklistedMyItemsTypes.includes(item.type)){
+				counteroffer.removeTheirItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
-		
-		myassetid.forEach(function(item) {
-			counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
+
+		myassetid.forEach(function(assetid) {
+			counteroffer.removeMyItem(genItemObj(assetid));
 		});
-		theirassetid.forEach(function(item) {
-			counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
+		theirassetid.forEach(function(assetid) {
+			counteroffer.removeTheirItem(genItemObj(assetid));
 		});
-		
-		if (counterofferSteamID == offer.partner.getSteamID64()){
+
+		if (counterofferSteamID == partnerSteamID64){
 			counteroffer.setMessage("I'm not doing charity here");
 		}
 		else if (offer.itemsToReceive.length == 1){
@@ -810,106 +652,93 @@ manager.on('newOffer', function(offer) {
 		else {
 			counteroffer.setMessage(offer.itemsToReceive.length+ " : "+offer.itemsToReceive.length+" please. Read trade rules and don't be greedy");
 		}
-		
+
 		counteroffer.send(function(err, status){
 			if (err){
-				var log = (currentdate() + " - Unable to send Counter Offer - "+err);
-				console.log(log);
-				fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+				logToFile("Unable to send Counter Offer - "+err);
 				offer.decline();
 			}
 		});
-		counterofferSteamID = offer.partner.getSteamID64();
-		
+		counterofferSteamID = partnerSteamID64;
+
 		setTimeout(function(){
-			acceptConfirmation(); 
+			acceptConfirmation();
 		}, 3000);
 	}
 	else if ((offer.itemsToGive.length < offer.itemsToReceive.length) && removedcards > 0){
-		var log = (currentdate() + " - Countered ("+offer.itemsToGive.length+ ":"+offer.itemsToReceive.length+") Trade Offer #" +offer.id+ " : " +offer.partner.getSteamID64()+ " - Reason: Too much item");
-		console.log(log);
-		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+		logToFile("Countered ("+offer.itemsToGive.length+ ":"+offer.itemsToReceive.length+") Trade Offer #" +offer.id+ " : " +partnerSteamID64+ " - Reason: Too much item");
 		var counteroffer = offer.counter();
-		
+
 		offer.itemsToGive.forEach(function(item) {
-			if (item.type == "MYBACKGROUND"){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+			if(blacklistedMyItemsTypes.includes(item.type)){
+				counteroffer.removeMyItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
-			if (item.type == "MYBACKGROUND"){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+			if(blacklistedMyItemsTypes.includes(item.type)){
+				counteroffer.removeTheirItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
-		
-		myassetid.forEach(function(item) {
-			counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
+
+		myassetid.forEach(function(assetid) {
+			counteroffer.removeMyItem(genItemObj(assetid));
 		});
-		theirassetid.forEach(function(item) {
-			counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
+		theirassetid.forEach(function(assetid) {
+			counteroffer.removeTheirItem(genItemObj(assetid));
 		});
-		
+
 		counteroffer.setMessage("Hello, VanillaBot here... You put too many item in your trade offer.");
 		counteroffer.send(function(err, status){
 			if (err){
-				var log = (currentdate() + " - Unable to send Counter Offer - "+err);
-				console.log(log);
-				fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+				logToFile("Unable to send Counter Offer - "+err);
 				offer.decline();
 			}
 		});
-		counterofferSteamID = offer.partner.getSteamID64();
-		
+		counterofferSteamID = partnerSteamID64;
+
 		setTimeout(function(){
-			acceptConfirmation(); 
+			acceptConfirmation();
 		}, 3000);
 	}
 	else if ((offer.itemsToGive.length == offer.itemsToReceive.length) && removedcards > 0){
-		var log = (currentdate() + " - Countered ("+offer.itemsToGive.length+ ":"+offer.itemsToReceive.length+") Trade Offer #" +offer.id+ " : " +offer.partner.getSteamID64()+ " - Reason: Trying cross-set");
-		console.log(log);
-		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+		logToFile("Countered ("+offer.itemsToGive.length+ ":"+offer.itemsToReceive.length+") Trade Offer #" +offer.id+ " : " +partnerSteamID64+ " - Reason: Trying cross-set");
 		var counteroffer = offer.counter();
-		
+
 		offer.itemsToGive.forEach(function(item) {
-			if (item.type == "MYBACKGROUND"){
-				counteroffer.removeMyItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+			if(blacklistedMyItemsTypes.includes(item.type)){
+				counteroffer.removeMyItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
 		offer.itemsToReceive.forEach(function(item) {
-			if (item.type == "MYBACKGROUND"){
-				counteroffer.removeTheirItem({"appid": item.appid, "contextid": item.contextid, "assetid": item.assetid});
+			if(blacklistedMyItemsTypes.includes(item.type)){
+				counteroffer.removeTheirItem(genItemObj(item.assetid, item.appid, item.contextid));
 			}
 		});
-		
-		myassetid.forEach(function(item) {
-			counteroffer.removeMyItem({"appid": 753, "contextid": 6, "assetid": item});
+
+		myassetid.forEach(function(assetid) {
+			counteroffer.removeMyItem(genItemObj(assetid));
 		});
-		theirassetid.forEach(function(item) {
-			counteroffer.removeTheirItem({"appid": 753, "contextid": 6, "assetid": item});
+		theirassetid.forEach(function(assetid) {
+			counteroffer.removeTheirItem(genItemObj(assetid));
 		});
-		
+
 		counteroffer.setMessage("Hello, VanillaBot here... No cross-set please.");
 		counteroffer.send(function(err, status){
 			if (err){
-				var log = (currentdate() + " - Unable to send Counter Offer - "+err);
-				console.log(log);
-				fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
+				logToFile("Unable to send Counter Offer - "+err);
 				offer.decline();
 			}
 		});
-		counterofferSteamID = offer.partner.getSteamID64();
-		
+		counterofferSteamID = partnerSteamID64;
+
 		setTimeout(function(){
-			acceptConfirmation(); 
+			acceptConfirmation();
 		}, 3000);
-	}
-	
-	else {
+
+	} else {
 		//Decline other trade offer
-		var log = (currentdate() + " - Rejecting Trade Offer from " +offer.partner.getSteamID64()+ " - Reason: Else");
-		console.log(log);
-		fs.appendFile("log.txt", log + "\n",  {flag: 'a'}, function(err) {});
-		
+		logToFile("Rejecting Trade Offer from " +partnerSteamID64+ " - Reason: Else");
+
 		offer.decline();
 	}
 });
